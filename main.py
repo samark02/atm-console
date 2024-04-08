@@ -16,10 +16,10 @@ class Admin:
     
     def view_banks(self):
         for i in self.banks:
-            print(i.name)
+            print(i)
 
 class Customer:
-    def __init__(self, name, acc_no, balance, pin=0000, bankname='HDFC'):
+    def __init__(self, name, acc_no, pin,balance, bankname):
         self.name = name
         self.acc_no = acc_no
         self.balance = balance
@@ -40,34 +40,40 @@ class Customer:
             self.balance -= amount
             return f"{amount} Withdrawn\n Acc Balance: {self.balance}"
     
-    def pin_change(self, new_pin):
-        self.pin = new_pin
+    def pin_change(self, new_pin, acc_no,bank):
+        # self.pin = new_pin
+        # bank=Bank()
+        print(bank.customers[acc_no][3])
+        bank.customers[acc_no][3] = new_pin
         return "Your Account pin has been successfully changed"
 
 class Bank:
-    def __init__(self,bankname, bankpass):
-        self.bankname = bankname
-        self.bankpass = bankpass
-        self.customers = []
+    def __init__(self):
+        # self.bankname = bankname
+        # self.bankpass = bankpass
+        self.customers = {}
 
     def add_customer(self, customer):
-        self.customers.append(customer)
+        self.customers[customer.acc_no]=([customer.name,customer.acc_no,customer.balance,customer.pin,customer.bankname])
 
     def view_custs(self):
+        print(self.customers)
         for customer in self.customers:
-            print("Name:", customer.name)
-            print("Account Number:", customer.acc_no)
-            print("Balance:", customer.balance)
             print()
+            print("Name:", self.customers[customer][0])
+            print("Account Number:", self.customers[customer][1])
+            print("Balance:", self.customers[customer][2])
+            print("Bank:", self.customers[customer][4])
+            print("PIN:", self.customers[customer][3])
 
-    def find_customer(self, account_number):
+    def find_customer(self, acc_no):
         for customer in self.customers:
-            if customer.account_number == account_number:
-                return customer
+            if customer == acc_no:
+                return self.customers[customer]
         # return None
 
 def main():
-    bank = Bank("HDFC","hdfc")
+    bank = Bank()
     admin = Admin("admin","admin123")
 
     while True:
@@ -77,9 +83,9 @@ def main():
         print("3. Bank Login")
         print("4. Exit")
 
-        ch = int(input("Enter your choice:"))
+        ch = input("Enter your choice:")
 
-        if ch == 1:
+        if ch == '1':
             username = input("Admin Username: ")
             password = input("Admin Password: ")
             
@@ -95,48 +101,53 @@ def main():
                     print("5. View Banks")
                     print("6. Exit")
 
-                    ad_ch = int(input("Enter your choice: "))
+                    ad_ch = input("Enter your choice: ")
 
-                    if ad_ch == 1:
+                    if ad_ch == '1':
                         name = input("Enter customer name: ")
                         acc_number = input("Enter account number: ")
                         pin = input("Enter PIN: ")
+                        if pin=='':
+                            pin='0000'
                         bankname = input("Enter Bank Name:").upper()
+                        if bankname=='':
+                            bankname='HDFC'
                         customer = Customer(name, acc_number, pin, 0, bankname)
                         if bankname not in admin.banks:
                             admin.add_bank(bankname, bankname.lower())
                         bank.add_customer(customer)
                         print("Customer added successfully.")
-                    elif ad_ch == 2:
+                    elif ad_ch == '2':
                         bank.view_custs()
-                    elif ad_ch == 3:
+                    elif ad_ch == '3':
                         bankname = input("Enter Bank Name: ").upper()
                         bankpass = input("Enter Bank Password: ").lower()
                         if bankpass == "":
                             bankpass= bankname.lower()
                         admin.add_bank(bankname, bankpass)
                         print(f"{bankname} added successfully")
-                    elif ad_ch == 4:
+                    elif ad_ch == '4':
                         print("\nBank Closure")
                         bankname = input("Enter Bank Name: ")
-                        admin.delete_bank(bankname)
+                        admin.delete_bank(bankname.upper())
                         print(f"{bankname} closed successfully")
-                    elif ad_ch == 5:
-                        print("\nRegistered Banks")
+                    elif ad_ch == '5':
+                        print("\nRegistered Banks:")
                         admin.view_banks()
-                    elif ad_ch == 6:
+                    elif ad_ch == '6':
                         print("Admin Logged Out")
                         break
                     else:
                         print("Invalid choice. Please try again.")
             else:
                 print("Invalid Credentials. Please try again")
-        elif ch == 2:
-            acc_number = input("Enter account number: ")
+        elif ch == '2':
+            acc_no = input("Enter account number: ")
             pin = input("Enter PIN: ")
-            customer = bank.find_customer(acc_number)
-            if customer and customer.pin == pin:
-                print(f"Welcome, {customer.name}!")
+            cust = bank.find_customer(acc_no)
+            print(cust[0],'---',cust[3],'----',pin)
+            if cust[3] == pin:
+                print(f"Welcome, {cust[0].capitalize()}!")
                 while True:
                     print("\nCustomer Menu:")
                     print("1. Check Balance")
@@ -156,18 +167,20 @@ def main():
                         amount = float(input("Enter withdrawal amount: "))
                         print(customer.withdraw(amount))
                     elif cust_ch == "4":
-                        new_pin = int(input("Enter your new PIN:"))
-                        print(customer.pin_change(new_pin))                        
+                        pin = input("Enter your new PIN:")
+                        print(customer.pin_change(pin,acc_no,bank))     
                     elif cust_ch == "5":
                         print("Customer logged out.")
                         break
                     else:
                         print("Invalid choice. Please try again.")
             else:
-                print("Invalid account number or PIN. Please try again.")
-        elif ch == 4:
-            print("Thank you for using the ATM")
+                print("\nInvalid account number or PIN. Please try again.")
+        elif ch == '4':
+            print("\nThank you for using the ATM")
             break
+        else:
+            print("\nInvalid choice. Please try again.")
 
 if __name__ == "__main__":
     main()
